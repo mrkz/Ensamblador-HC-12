@@ -1,0 +1,3 @@
+Error	Descripcion
+0		No hay error
+1		debe haber un operando
