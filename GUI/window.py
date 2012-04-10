@@ -7,7 +7,7 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
-import gtksourceview2
+import gtksourceview
 import sys
 
 sys.path.append('../src')
@@ -113,18 +113,20 @@ class Ventana:
 		
 		
 	def save_file(self,widget,data=None):
+		
+		# se crean los iteradores para marcar el inicio y final del buffer, para guardar el archivo
+		file_start = self.text_buffer.get_start_iter()
+		file_end   = self.text_buffer.get_end_iter()
+		
 		try:
-			# se crean los iteradores para marcar el inicio y final del buffer, para guardar el archivo
 			self.file = open(self.namefile,'w+')
-			file_start = self.text_buffer.get_start_iter()
-			file_end   = self.text_buffer.get_end_iter()
 			self.file.write(self.text_buffer.get_text(file_start,file_end))
 			self.file.close()
 		except AttributeError:
 			print "saving a new file"
-			file_start = self.text_buffer.get_start_iter()
-			file_end   = self.text_buffer.get_end_iter()
-			dialog = gtk.FileChooserDialog("Guardar como...",self.window,gtk.FILE_CHOOSER_ACTION_SAVE,buttons= (gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_SAVE,gtk.RESPONSE_OK))
+			dialog = gtk.FileChooserDialog("Guardar como...",self.window,
+										    gtk.FILE_CHOOSER_ACTION_SAVE,
+										    buttons= (gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_SAVE,gtk.RESPONSE_OK))
 			filter = gtk.FileFilter()
 			filter.set_name("Archivo Ensamblador (*.asm)")
 			filter.add_pattern("*.asm")
@@ -133,16 +135,34 @@ class Ventana:
 			response = dialog.run()
 			if response == gtk.RESPONSE_OK:
 				self.namefile = dialog.get_filename()
+				# si al nombrar archivo el usuario no colocó extensión *.asm se le añade
+				if self.namefile.find(".asm") == -1:
+					self.namefile+=".asm"
 				self.file = open(self.namefile,'w+')
 				self.file.write(self.text_buffer.get_text(file_start,file_end))
 				self.file.close()
 			elif response == gtk.RESPONSE_CANCEL:
 				print "aborting save..."
 			dialog.destroy()
+			# se guardaron cambios y la bandera de modificación se apaga
+			self.text_buffer.set_modified(False)
 			
 
 	def close(self,widget,data=None): # método llamado desde el menu "archivo -> cerrar"
 		print "Ctrl + W"
+		file_start = self.text_buffer.get_start_iter()
+		file_end   = self.text_buffer.get_end_iter()
+		cont = self.text_buffer.get_text(file_start,file_end)
+		if self.text_buffer.get_modified():
+			message = "El Archivo ha sido modificado\n¿Desea guardar cambios?"
+			result_dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+											  gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, message)
+			result_dialog.set_title("Cerrar...")
+			#result_dialog.show_all()
+			response = result_dialog.run()	# se lanza dialogo para salvar cambios
+			if response == gtk.RESPONSE_YES:
+				self.save_file(None)
+		gtk.main_quit()
 
 	def delete_event(self,widget,data=None): # método llamado a presionar boton cerrar
 		print "El programa se cerrará..."
