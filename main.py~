@@ -15,5 +15,5 @@ from GUI.window import Ventana
 
 if __name__ == "__main__":
 	window = Ventana("Taller de programación de sistemas")	# crear un objeto ventana con el titulo fijo
-	#linea = []	# lista de lineas que rebibiré del area de texto
+	linea = []	# lista de lineas que rebibiré del area de texto
 	window.main()		# llamar al iniciar la ventana

@@ -12,6 +12,7 @@ import sys
 
 sys.path.append('../src')
 from src.analizadorDeLineas import Linea
+from src.dictabop import Tabop
 
 class Ventana:
 	def __init__(self,title,type=gtk.WINDOW_TOPLEVEL):
@@ -91,28 +92,7 @@ class Ventana:
 		self.window.show_all()
 		
 		#crear diccionario al crear la ventana
-		self.create_dictabop()
-	
-	def create_dictabop(self):
-		print "Creating dict..."
-		tabop   = {}
-		tmpfile = open("../src/TABOP/TABOP.data",'r')
-		cad = tmpfile.readlines()
-		tmpfile.close()
-		for i in cad:
-			tmpline = i.split('|')
-			tmplist = self.createList(i)
-			if tabop.has_key(tmpline[0]):
-				tabop[tmpline[0]][tmpline[2]] = tmplist
-			else:
-				tabop[tmpline[0]] = {tmpline[2]:tmplist}
-		print tabop
-		
-	def createList(self,string):
-		tmplist = string.split('|')
-		tmplist.pop(2)
-		tmplist.pop(0)
-		return tmplist
+		self.tabop = Tabop()
 
 	def open_file(self,widget,data=None): # método llamado desde el menu "archivo -> Abrir archivo..."
 		print "opening file..."
@@ -226,10 +206,10 @@ class Ventana:
 		messageArray = []
 		for i in objectLine:
 			if i.toString() != None:
-				messageArray.append(i.toString())
+				#envío el tabop para que toString revise si existe la instrucción
+				messageArray.append(i.toString(self.tabop))
 			else:
 				continue
-			#print i.toString()
 		# se llama método para mostrar en un Dialogo los resultados
 		self.resultDialog(messageArray)
 			
