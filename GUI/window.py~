@@ -100,6 +100,7 @@ class Ventana:
 		cad = tmpfile.readlines()
 		tmpfile.close()
 		for i in cad:
+			print i
 			tmpline = i.split('|')
 			tmplist = self.createList(i)
 			if tabop.has_key(tmpline[0]):
