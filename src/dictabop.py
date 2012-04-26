@@ -10,7 +10,7 @@ class Tabop:
 	
 	def __init__(self):
 		print "Creating dict..."
-		tmpfile = open("TABOP/TABOP.data",'r')
+		tmpfile = open('src/TABOP/TABOP.data','r')
 		cad = tmpfile.readlines()
 		tmpfile.close()
 		for i in cad:
