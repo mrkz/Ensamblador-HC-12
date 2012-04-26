@@ -206,7 +206,6 @@ class Ventana:
 		messageArray = []
 		for i in objectLine:
 			if i.toString() != None:
-				#envío el tabop para que toString revise si existe la instrucción
 				messageArray.append(i.toString(self.tabop))
 			else:
 				continue

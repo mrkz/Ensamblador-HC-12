@@ -125,7 +125,7 @@ class Linea:
 			if tabop.tabop.has_key(self.get_opcode()):
 				for i in tabop.tabop[self.get_opcode()].keys():
 					if direccionamientos != "":
-						direccionamientos = direccionamientos + ", " + i
+						direccionamientos = direccionamientos + "," + i
 					else:
 						direccionamientos = i
 			string = string + "\nDireccionamiento(s): "+direccionamientos
