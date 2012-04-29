@@ -200,6 +200,8 @@ class Ventana:
 		if self.code_in_buffer=="":
 			return
 		line = self.code_in_buffer.split('\n')
+		
+		# se crea una lista de objetos tipo Linea
 		for i in range(len(line)):
 			objectLine.append(Linea(line[i],i+1))
 		# creo un array para los mensajes de los objetos linea analizados

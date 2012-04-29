@@ -57,6 +57,9 @@ class Linea:
 
 	def set_operator(self,operator=None):
 		self.__operator = operator
+	
+	def set_direccionamiento(self,dire):
+		self.__direccionamiento=str(dire)
 
 	def get_label(self):
 		return self.__label
@@ -66,6 +69,9 @@ class Linea:
 
 	def get_operator(self):
 		return self.__operator
+	
+	def get_direccionamiento(self):
+		return self.__direccionamiento
 
 	def check_label(self):
 		"""método que revisa la composición de una etiqueta mediante expresiones regulares
@@ -121,15 +127,44 @@ class Linea:
 		else:
 			string = string+"Número de operandos: 0"
 		if tabop != None:
-			direccionamientos = ""
 			if tabop.tabop.has_key(self.get_opcode()):
-				for i in tabop.tabop[self.get_opcode()].keys():
-					if direccionamientos != "":
-						direccionamientos = direccionamientos + ", " + i
-					else:
-						direccionamientos = i
-			string = string + "\nDireccionamiento(s): "+direccionamientos
+				mode = self.selectMode(self.get_opcode(), self.get_operator(), tabop)
+				self.set_direccionamiento(mode)
+				string = string + "\nDireccionamientos: " + self.get_direccionamiento()
+				string = string + "\nCantidad de bytes: " + str(tabop.tabop[self.get_opcode()][self.get_direccionamiento()][-1])
 		return string
+	
+	def selectMode(self, codop, operando, tabop):
+		if operando == None:
+			return "INH"
+		elif operando[0]=='#':
+			return "IMM"
+		#puede ser DIR,EXT,REL
+		elif operando[0]=='@' or operando[0]=='$' or operando[0]=='%' or operando[0].isdigit():
+			valor_decimal = self.get_decimal(operando)
+			if operando[0].isdigit():
+				valor_decimal = int(operando,10)
+			if   valor_decimal <= 255 and valor_decimal >= -256:
+				if tabop.tabop[codop].has_key("DIR"):
+					return "DIR"
+				else:
+					return "REL"
+			elif valor_decimal <= 65535 and valor_decimal >= -32768:
+				if tabop.tabop[codop].has_key("EXT"):
+					return "EXT"
+				else:
+					return "REL"
+			
+	def get_decimal(self,cadena):
+		if cadena[0]=='@':
+			cadena = cadena[1:]
+			return int(cadena,8)
+		elif cadena[0]=='%':
+			cadena = cadena[1:]
+			return int(cadena,2)
+		else:
+			cadena = cadena[1:]
+			return int(cadena,16)
 
 	def all_none(self):
 		if self.get_label() == None and self.get_opcode() == None and self.get_operator() == None:
