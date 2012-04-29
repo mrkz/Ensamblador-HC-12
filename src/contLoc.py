@@ -6,23 +6,34 @@
 
 import string	# importar el paquete para manejo de cadenas
 class Contloc:
-	def __init__(self):
-		self.contloc = 0					# contador entero
-		self.contHex = self.contToHex()		# contador en hexadecimal
-		self.contStr = self.format()		# contador formateado (cadena)
+	def __init__(self,n = 0):
+		self.set_contloc(n)
 
-	def format():
-		self.contStr = contHex.rjustrjust(4,'0')	# rellenas con 0's
+	def formateo(self):
+		return self.contHex.rjust(4,'0')	# rellenas con 0's
+	
+	def fotmatEqu(self,str):
+		n = int(str)
+		tmp = hex(n)
+		tmp = tmp[2:]
+		tmp = tmp.rjust(4,'0')
+		return tmp.upper()
 
-	def contToHex():
+	def contToHex(self):
 		self.contHex = hex(self.contloc)
 		# se toma el valor hexadecimal, excepto los caracteres '0x'
-		self.contHex = self.contHex[2:]
+		return self.contHex[2:]
 	
-	def add(int):
-		self.contloc += int
+	def add(self,str):
+		n = int(str)
+		self.contloc += n
 		self.contHex = self.contToHex()
-		self.contStr = self.format()
-
-	def get_format():
-		return self.contStr
+		self.contStr = self.formateo()
+	
+	def set_contloc(self,n):
+		self.contloc = int(n)				# contador entero
+		self.contHex = self.contToHex()		# contador en hexadecimal
+		self.contStr = self.formateo()		# contador formateado (cadena)
+	
+	def get_format(self):
+		return self.contStr.upper()

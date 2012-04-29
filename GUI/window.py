@@ -13,6 +13,7 @@ import sys
 sys.path.append('../src')
 from src.analizadorDeLineas import Linea
 from src.dictabop import Tabop
+from src.contLoc import Contloc
 
 class Ventana:
 	def __init__(self,title,type=gtk.WINDOW_TOPLEVEL):
@@ -93,6 +94,8 @@ class Ventana:
 		
 		#crear diccionario al crear la ventana
 		self.tabop = Tabop()
+		#crear un contador de localidades al crear ventana
+		self.contloc = Contloc()
 
 	def open_file(self,widget,data=None): # método llamado desde el menu "archivo -> Abrir archivo..."
 		print "opening file..."
@@ -206,16 +209,48 @@ class Ventana:
 			objectLine.append(Linea(line[i],i+1))
 		# creo un array para los mensajes de los objetos linea analizados
 		messageArray = []
+		n = 0 #número a sumar en el contloc
 		for i in objectLine:
 			if i.toString() != None:
 				#envío el tabop para que toString revise si existe la instrucción
 				messageArray.append(i.toString(self.tabop))
+				#se define el inicio del contador de localidades
+				self.contloc.add(n)
+				if i.get_opcode() == "ORG":
+					opr = i.get_operator()
+					val = self.get_dec(opr)
+					self.contloc.set_contloc(val)
+					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
+				if self.tabop.tabop.has_key(i.get_opcode()): # si es un código de operación
+					n=i.get_totalbytes()
+					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
+				if i.get_opcode() == "EQU":
+					opr = i.get_operator()
+					val = self.get_dec(opr)
+					n = 0
+					messageArray[-1]+="\nContloc: "+self.contloc.fotmatEqu(val)
+				if i.get_opcode() == "END":
+					messageArray[-1]+="\nContloc: "+self.contloc.get_format()				
 			else:
 				continue
 		# se llama método para mostrar en un Dialogo los resultados
 		self.resultDialog(messageArray)
 			
-					
+	def get_dec(self,opr):
+		"""método para obtener valor decimal de un ORG"""
+		if   opr[0]=='$':
+			opr    = opr[1:]		# se le quita el '$'
+			valdec = int(opr,16)	# str(hex) -> dec
+		elif opr[0]=='%':
+			opr    = opr[1:]		# se le quita el '%'
+			valdec = int(opr,2)		# str(bin) -> dec
+		elif opr[0]=='@':
+			opr	   = opr[1:]		# se le quita el '@'
+			valdec = int(opr,8)		# str(oct) -> dec
+		else:	#se infiere que es decimal
+			valdec = int(opr,10)	# str(dec) -> dec
+		return valdec			
+			
 
 	def main(self):
 		gtk.main()

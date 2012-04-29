@@ -60,6 +60,9 @@ class Linea:
 	
 	def set_direccionamiento(self,dire):
 		self.__direccionamiento=str(dire)
+	
+	def set_totalbytes(self,n):
+		self.__totalbytes = n
 
 	def get_label(self):
 		return self.__label
@@ -72,6 +75,9 @@ class Linea:
 	
 	def get_direccionamiento(self):
 		return self.__direccionamiento
+	
+	def get_totalbytes(self):
+		return self.__totalbytes
 
 	def check_label(self):
 		"""método que revisa la composición de una etiqueta mediante expresiones regulares
@@ -131,7 +137,11 @@ class Linea:
 				mode = self.selectMode(self.get_opcode(), self.get_operator(), tabop)
 				self.set_direccionamiento(mode)
 				string = string + "\nDireccionamientos: " + self.get_direccionamiento()
-				string = string + "\nCantidad de bytes: " + str(tabop.tabop[self.get_opcode()][self.get_direccionamiento()][-1])
+				#i.e.: diccionario[ABA][INH][Total_bytes]
+				#donde Total_bytes es el último elemento de la lista que alberga el diccionario en
+				#la posición diccionario[ABA][INH] /* = ["false",1806,2,0,2] */
+				self.set_totalbytes(int(tabop.tabop[self.get_opcode()][self.get_direccionamiento()][-1]))
+				string = string + "\nCantidad de bytes: " + str(self.get_totalbytes())
 		return string
 	
 	def selectMode(self, codop, operando, tabop):
