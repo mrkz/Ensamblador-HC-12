@@ -203,6 +203,11 @@ class Ventana:
 		if self.code_in_buffer=="":
 			return
 		line = self.code_in_buffer.split('\n')
+		archivolist = str(self.namefile)
+		archivolist = archivolist[:-4] #quito extensión .asm
+		self.lst = open(archivolist+".lst",'w+')	#crear archivo *.lst
+		self.tbs = open(archivolist+".tbs",'w+')	#creat archivo *.tbs (tabla de símbolos)
+		j = 0	#contador para aumentar el número de la línea a escribir en *.lst
 		
 		# se crea una lista de objetos tipo Linea
 		for i in range(len(line)):
@@ -221,18 +226,32 @@ class Ventana:
 					val = self.get_dec(opr)
 					self.contloc.set_contloc(val)
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-				if self.tabop.tabop.has_key(i.get_opcode()): # si es un código de operación
+					self.lst.write(self.contloc.get_format()+"\t"+line[j]+"\n")
+				if self.tabop.tabop.has_key(i.get_opcode()): # if(es un código de operación)
 					n=i.get_totalbytes()
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
+					self.lst.write(self.contloc.get_format()+"\t"+line[j]+"\n")
+					if i.get_label()!=None:
+						self.tbs.write(i.get_label()+"\t"+self.contloc.get_format()+"\n")
 				if i.get_opcode() == "EQU":
 					opr = i.get_operator()
 					val = self.get_dec(opr)
 					n = 0
 					messageArray[-1]+="\nContloc: "+self.contloc.fotmatEqu(val)
+					self.lst.write(self.contloc.fotmatEqu(val)+"\t"+line[j]+"\n")
+					self.tbs.write(i.get_label()+"\t"+self.contloc.fotmatEqu(val)+"\n")
 				if i.get_opcode() == "END":
-					messageArray[-1]+="\nContloc: "+self.contloc.get_format()				
+					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
+					self.lst.write(self.contloc.get_format()+"\t"+line[j]+"\n")
+					self.tbs.write(i.get_label()+"\t"+self.contloc.get_format()+"\n")
+				j+=1		# se aumenta la linea a escribir en el *.lst
 			else:
+				self.lst.write("\t"+line[j]+"\n")	# se escribe linea inútil en el *.lst
+				j+=1		# se aumenta la linea a escribir en el *.lst
 				continue
+		#cierro archivos creados al correr el código
+		self.lst.close()
+		self.tbs.close()
 		# se llama método para mostrar en un Dialogo los resultados
 		self.resultDialog(messageArray)
 			
