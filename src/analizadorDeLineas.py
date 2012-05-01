@@ -16,6 +16,8 @@ class Linea:
 		# el objeto linea tiene atributos
 		#	linea 		-> tiene todo el contenido de la linea del código ([etiqueta],<codop>|<directiva>,[operador],[comentario])
 		#	line_number -> el numero de linea que le corresponde en el código ensamblador
+		#	direccionamiento -> el modo de direccionamiento de la linea según su código de operación
+		#	totalbytes -> el número de bytes que genera el código de operación con ese direccionamiento (porposito: para sumar el contloc)
 		# si hay un caracter ';' se retirará desde el indice del caracter hasta el final de la linea
 		if line.find(';') >= 0:
 			line = line[:line.find(';')]
@@ -78,6 +80,19 @@ class Linea:
 	
 	def get_totalbytes(self):
 		return self.__totalbytes
+	
+	def get_machinecode(self,tabop):
+		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
+		machCode = tabop.tabop[self.get_opcode()][self.get_direccionamiento()][1]
+		if self.get_direccionamiento() == "DIR":
+			machCode+= " dd"
+		elif self.get_direccionamiento() == "REL":
+			machCode+= " rr"
+		elif self.get_direccionamiento() == "EXT":
+			machCode+= " hh ll"
+		elif self.get_direccionamiento() == "IMM":
+			machCode+= " ii"
+		return machCode
 
 	def check_label(self):
 		"""método que revisa la composición de una etiqueta mediante expresiones regulares
@@ -164,6 +179,9 @@ class Linea:
 					return "EXT"
 				else:
 					return "REL"
+		#se infiere que es una etiqueta
+		else:
+			return "EXT"
 			
 	def get_decimal(self,cadena):
 		if cadena[0]=='@':

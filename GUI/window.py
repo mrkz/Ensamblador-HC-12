@@ -226,11 +226,13 @@ class Ventana:
 					val = self.get_dec(opr)
 					self.contloc.set_contloc(val)
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-					self.lst.write(self.contloc.get_format()+"\t"+line[j]+"\n")
-				if self.tabop.tabop.has_key(i.get_opcode()): # if(es un código de operación)
+					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
+					n = 0
+				# if(es un código de operación)
+				if self.tabop.tabop.has_key(i.get_opcode()):
 					n=i.get_totalbytes()
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-					self.lst.write(self.contloc.get_format()+"\t"+line[j]+"\n")
+					self.lst.write(self.contloc.get_format()+"\t"+i.get_machinecode(self.tabop)+"\t\t"+line[j]+"\n")
 					if i.get_label()!=None:
 						self.tbs.write(i.get_label()+"\t"+self.contloc.get_format()+"\n")
 				if i.get_opcode() == "EQU":
@@ -238,15 +240,15 @@ class Ventana:
 					val = self.get_dec(opr)
 					n = 0
 					messageArray[-1]+="\nContloc: "+self.contloc.fotmatEqu(val)
-					self.lst.write(self.contloc.fotmatEqu(val)+"\t"+line[j]+"\n")
+					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
 					self.tbs.write(i.get_label()+"\t"+self.contloc.fotmatEqu(val)+"\n")
 				if i.get_opcode() == "END":
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-					self.lst.write(self.contloc.get_format()+"\t"+line[j]+"\n")
+					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
 					self.tbs.write(i.get_label()+"\t"+self.contloc.get_format()+"\n")
+					break; # si es un END, termina de analizar el código
 				j+=1		# se aumenta la linea a escribir en el *.lst
 			else:
-				self.lst.write("\t"+line[j]+"\n")	# se escribe linea inútil en el *.lst
 				j+=1		# se aumenta la linea a escribir en el *.lst
 				continue
 		#cierro archivos creados al correr el código
