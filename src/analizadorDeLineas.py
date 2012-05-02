@@ -91,7 +91,10 @@ class Linea:
 		elif self.get_direccionamiento() == "EXT":
 			machCode+= " hh ll"
 		elif self.get_direccionamiento() == "IMM":
-			machCode+= " ii"
+			if self.get_totalbytes() == 2:
+				machCode+= " ii"
+			else:
+				machCode+= " jj kk"
 		return machCode
 
 	def check_label(self):
