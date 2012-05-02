@@ -173,7 +173,12 @@ class Linea:
 				if tabop.tabop[codop].has_key("DIR"):
 					return "DIR"
 				else:
-					return "REL"
+				# linea nueva de p4
+					if tabop.tabop[codop].has_key("EXT"):
+						return "EXT"
+					else:
+				# termina linea nueva de p4
+						return "REL"
 			elif valor_decimal <= 65535 and valor_decimal >= -32768:
 				if tabop.tabop[codop].has_key("EXT"):
 					return "EXT"

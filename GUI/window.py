@@ -240,7 +240,7 @@ class Ventana:
 					val = self.get_dec(opr)
 					n = 0
 					messageArray[-1]+="\nContloc: "+self.contloc.fotmatEqu(val)
-					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
+					self.lst.write(self.contloc.fotmatEqu(val)+"\t\t\t"+line[j]+"\n")
 					self.tbs.write(i.get_label()+"\t"+self.contloc.fotmatEqu(val)+"\n")
 				if i.get_opcode() == "END":
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
