@@ -1,3 +1,4 @@
 # ignorar pdf's, bytecodes y archivos *.py~
 docs/*.pdf
 *.py?
+*~
