@@ -11,6 +11,11 @@ class Contloc:
 
 	def formateo(self):
 		return self.contHex.rjust(4,'0')	# rellenas con 0's
+
+	# se formatea "FFFF" -> "FF FF"
+	def fotmat_to_lsb(self):
+		tmp = self.formateo()
+		return tmp[:2]+" "+tmp[2:]
 	
 	def fotmatEqu(self,str):
 		n = int(str)

@@ -25,15 +25,17 @@ class Linea:
 		self.line_number = line_number
 		self.list_line_split = self.line.split() # linea dividida en tokens. Criterio de divisibilidad es el espacio en blanco.
 		if self.line.startswith(' '):
-			if len(self.list_line_split) > 2:
+			if   len(self.list_line_split) == 1:
 				self.set_none()
-				return
+				self.set_opcode(self.list_line_split[0])
 			elif len(self.list_line_split) == 2:
 				self.set_label()
 				self.set_opcode(self.list_line_split[0])
 				self.set_operator(self.list_line_split[1])
+			elif len(self.list_line_split) > 2:
+				self.set_none()
+				return
 		else:
-			self.list_line_split
 			if   len(self.list_line_split) == 2:
 				self.set_label(self.list_line_split[0])
 				self.set_opcode(self.list_line_split[1])
@@ -87,7 +89,12 @@ class Linea:
 		if self.get_direccionamiento() == "DIR":
 			machCode+= " dd"
 		elif self.get_direccionamiento() == "REL":
-			machCode+= " rr"
+			if self.get_totalbytes() == 4:
+				machCode+= " qq rr"
+			elif self.get_totalbytes() == 3:
+				machCode+= " lb rr"
+			else: #se infiere que self.get_totalbytes() == 2
+				machCode+= " rr"
 		elif self.get_direccionamiento() == "EXT":
 			machCode+= " hh ll"
 		elif self.get_direccionamiento() == "IMM":
@@ -136,10 +143,13 @@ class Linea:
 				return ("Línea "+str(self.line_number)+":\nLinea inválida: etiqueta no válida\n")
 		# se define una lista (self.get_label(),""), y dependiendo el valor de la comparacion tomará el elemento
 		string = string+"Etiqueta:    "+(self.get_label(),"")[self.get_label()==None]+"\n"
-		if(self.check_opcode()):
-			string = string+"Instrucción: "+self.get_opcode()+"\n"
+		if self.get_opcode() != None:
+			if(self.check_opcode()):
+				string = string+"Instrucción142: "+self.get_opcode()+"\n"
+			else:
+				return "Línea "+str(self.line_number)+":\nLinea inválida: código de operación no válido\n"
 		else:
-			return "Línea "+str(self.line_number)+":\nLinea inválida: código de operación no válido\n"
+			string = string+"Instrucción146: "+"\n"
 		string = string+"Operando(s): "+(self.get_operator(),"")[self.get_operator()==None]+"\n"
 		operator = self.get_operator()
 		if operator != None:

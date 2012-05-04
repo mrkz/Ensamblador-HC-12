@@ -245,7 +245,8 @@ class Ventana:
 				if i.get_opcode() == "END":
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
 					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
-					self.tbs.write(i.get_label()+"\t"+self.contloc.get_format()+"\n")
+					if i.get_label() != None:
+						self.tbs.write(str(i.get_label())+"\t"+self.contloc.get_format()+"\n")
 					break; # si es un END, termina de analizar el código
 				j+=1		# se aumenta la linea a escribir en el *.lst
 			else:
