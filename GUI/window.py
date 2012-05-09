@@ -205,7 +205,6 @@ class Ventana:
 		line = self.code_in_buffer.split('\n')
 		archivolist = str(self.namefile)
 		archivolist = archivolist[:-4] #quito extensión .asm
-		self.lst = open(archivolist+".lst",'w+')	#crear archivo *.lst
 		self.tbs = open(archivolist+".tbs",'w+')	#creat archivo *.tbs (tabla de símbolos)
 		j = 0	#contador para aumentar el número de la línea a escribir en *.lst
 		
@@ -214,6 +213,9 @@ class Ventana:
 			objectLine.append(Linea(line[i],i+1))
 		# creo un array para los mensajes de los objetos linea analizados
 		messageArray = []
+		lstArray = [] #creo lista para escribir en el archivo *.lst
+		post_processing = [] # lista de lineas que tienen una etiqueta como operando, se procesan después del *.tbs
+		dict_tbs = {}	#diccionario con las etiquetas que existen en el *.tbs
 		n = 0 #número a sumar en el contloc
 		for i in objectLine:
 			if i.toString() != None:
@@ -226,35 +228,58 @@ class Ventana:
 					val = self.get_dec(opr)
 					self.contloc.set_contloc(val)
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
+					lstArray.append(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
 					n = 0
 				# if(es un código de operación)
 				if self.tabop.tabop.has_key(i.get_opcode()):
 					n=i.get_totalbytes()
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-					self.lst.write(self.contloc.get_format()+"\t"+i.get_machinecode(self.tabop)+"\t\t"+line[j]+"\n")
+					if i.get_operator()!=None:
+						# si el operando es una etiqueta, se añade a la cola de post-procesamiento (*.tbs stuffs :v)
+						if i.check_label(cad = i.get_operator()):
+							#linea -1 para saber en que indice de lstArray meterlo después (inicia en 0)					
+							post_processing.append([i,i.line_number-1,self.contloc.get_format()])
+						else: # no es una etiqueta, entonces se añade sin pex :v
+							lstArray.append(self.contloc.get_format()+"\t"+i.get_machinecode(self.tabop)+"\t\t"+line[j]+"\n")
+					else:
+						lstArray.append(self.contloc.get_format()+"\t"+i.get_machinecode(self.tabop)+"\t\t"+line[j]+"\n")
 					if i.get_label()!=None:
 						self.tbs.write(i.get_label()+"\t"+self.contloc.get_format()+"\n")
+						dict_tbs[i.get_label()] = self.contloc.get_format()
+
 				if i.get_opcode() == "EQU":
 					opr = i.get_operator()
 					val = self.get_dec(opr)
 					n = 0
 					messageArray[-1]+="\nContloc: "+self.contloc.fotmatEqu(val)
-					self.lst.write(self.contloc.fotmatEqu(val)+"\t\t\t"+line[j]+"\n")
+					lstArray.append(self.contloc.fotmatEqu(val)+"\t\t\t"+line[j]+"\n")
 					self.tbs.write(i.get_label()+"\t"+self.contloc.fotmatEqu(val)+"\n")
+					dict_tbs[i.get_label()] = self.contloc.fotmatEqu(val)
 				if i.get_opcode() == "END":
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
-					self.lst.write(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
+					lstArray.append(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
 					if i.get_label() != None:
 						self.tbs.write(str(i.get_label())+"\t"+self.contloc.get_format()+"\n")
+						dict_tbs[i.get_label()] = self.contloc.get_format()
 					break; # si es un END, termina de analizar el código
 				j+=1		# se aumenta la linea a escribir en el *.lst
 			else:
 				j+=1		# se aumenta la linea a escribir en el *.lst
 				continue
 		#cierro archivos creados al correr el código
-		self.lst.close()
 		self.tbs.close()
+		
+		#se procesan las lineas con etiquetas (que están en post_processing
+		for i in post_processing:
+			if dict_tbs.has_key (i[0].get_operator()):
+				lstArray.insert(i[1], (i[2]+"\t"+i[0].get_machinecode(self.tabop,dict_tbs)+"\t\t"+line[i[1]]+"\n"))
+			else:
+				lstArray.insert(i[1],"Algo raro pasó, la etiqueta no está en el tbs\n")
+		self.lst = open(archivolist+".lst",'w+')	#crear archivo *.lst
+		for line in lstArray:
+			self.lst.write(line)
+		self.lst.close()
+		
 		# se llama método para mostrar en un Dialogo los resultados
 		self.resultDialog(messageArray)
 			

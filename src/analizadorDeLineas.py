@@ -24,6 +24,7 @@ class Linea:
 		self.line = line.replace('\t',' ')
 		self.line_number = line_number
 		self.list_line_split = self.line.split() # linea dividida en tokens. Criterio de divisibilidad es el espacio en blanco.
+		self.__is_label = False
 		if self.line.startswith(' '):
 			if   len(self.list_line_split) == 1:
 				self.set_none()
@@ -67,6 +68,9 @@ class Linea:
 	
 	def set_totalbytes(self,n):
 		self.__totalbytes = n
+	
+	def set_is_label(self):
+		self.__is_label = True
 
 	def get_label(self):
 		return self.__label
@@ -83,11 +87,14 @@ class Linea:
 	def get_totalbytes(self):
 		return self.__totalbytes
 	
-	def get_machinecode(self,tabop):
+	def is_label(self):
+		return self.__is_label
+	
+	def get_machinecode(self,tabop, dict_tbs=None): #dict_tbs para los elementos que tienen etiqueta en el operando
 		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
 		machCode = tabop.tabop[self.get_opcode()][self.get_direccionamiento()][1]
 		if self.get_direccionamiento() == "DIR":
-			machCode+= " dd"
+			machCode+= " " + self.get_hexadecimal_format(self.get_operator())
 		elif self.get_direccionamiento() == "REL":
 			if self.get_totalbytes() == 4:
 				machCode+= " qq rr"
@@ -96,25 +103,32 @@ class Linea:
 			else: #se infiere que self.get_totalbytes() == 2
 				machCode+= " rr"
 		elif self.get_direccionamiento() == "EXT":
-			machCode+= " hh ll"
+			#machCode+= " hh ll"
+			if dict_tbs == None: # no hay diccionario por que no hay etiqueta y no se llamó al método con diccionario
+				machCode+= " " + self.get_hexadecimal_format_filled(self.get_operator())
+			else: # se envió un diccionario y se añadirá el contloc de la etiqueta
+				format_contloc = dict_tbs[self.get_operator()]
+				format_contloc = format_contloc[:2]+" "+format_contloc[2:]
+				machCode+= " " + format_contloc
 		elif self.get_direccionamiento() == "IMM":
 			if self.get_totalbytes() == 2:
-				machCode+= " ii"
+				machCode+= " " + self.get_hexadecimal_format(self.get_operator())
 			else:
-				machCode+= " jj kk"
+				machCode+= " " + self.get_hexadecimal_format_filled(self.get_operator())
 		return machCode
 
-	def check_label(self):
+	def check_label(self,cad=None):
 		"""método que revisa la composición de una etiqueta mediante expresiones regulares
 				La etiqueta es válida si:
 					- Tiene una longitud de entre 1 y 5 caracteres inclusive
 					- Inicia con letra o guión bajo
 					- Contiene solo letras, guión bajo o números"""
 		# compilar patrón para una etiqueta
-		label_pattern = re.compile('[\w^0-9][\w]+')
-		
-		# verdadero si la etiqueta coincide con la ex. regular y tiene tamaño 0<label<6
-		if label_pattern.match( self.get_label()) and len( self.get_label()) < 6:
+		label_pattern = re.compile('[a-zA-Z_][\w]+')
+		if cad == None:
+			cad = self.get_label()
+		# verdadero si la cadena dada (etiqueta) coincide con la ex. regular y tiene tamaño 0<cad<6
+		if label_pattern.match(cad) and len(cad) < 6:
 			return True
 		return False
 	
@@ -145,11 +159,11 @@ class Linea:
 		string = string+"Etiqueta:    "+(self.get_label(),"")[self.get_label()==None]+"\n"
 		if self.get_opcode() != None:
 			if(self.check_opcode()):
-				string = string+"Instrucción142: "+self.get_opcode()+"\n"
+				string = string+"Instrucción: "+self.get_opcode()+"\n"
 			else:
 				return "Línea "+str(self.line_number)+":\nLinea inválida: código de operación no válido\n"
 		else:
-			string = string+"Instrucción146: "+"\n"
+			string = string+"Instrucción: "+"\n"
 		string = string+"Operando(s): "+(self.get_operator(),"")[self.get_operator()==None]+"\n"
 		operator = self.get_operator()
 		if operator != None:
@@ -199,18 +213,35 @@ class Linea:
 					return "REL"
 		#se infiere que es una etiqueta
 		else:
+			self.set_is_label()
 			return "EXT"
 			
 	def get_decimal(self,cadena):
+		if cadena[0]=='#':
+			cadena = cadena[1:]
+			
 		if cadena[0]=='@':
 			cadena = cadena[1:]
 			return int(cadena,8)
 		elif cadena[0]=='%':
 			cadena = cadena[1:]
 			return int(cadena,2)
-		else:
+		elif cadena[0]=='$':
 			cadena = cadena[1:]
 			return int(cadena,16)
+		else: 	#es un entero i.e: 10
+			return int(cadena)
+
+	def get_hexadecimal_format(self,cadena):
+		hex_format = hex(self.get_decimal(cadena))
+		hex_format = hex_format[2:].upper() # se le quita el '0x' y se hace mayúsculas
+		return hex_format
+	
+	def get_hexadecimal_format_filled(self,cadena):
+		hex_format_filled = self.get_hexadecimal_format(cadena)
+		hex_format_filled = hex_format_filled.rjust(4,'0') # se rellena con ceros
+		hex_format_filled = hex_format_filled[:2]+" "+hex_format_filled[2:]
+		return hex_format_filled
 
 	def all_none(self):
 		if self.get_label() == None and self.get_opcode() == None and self.get_operator() == None:
