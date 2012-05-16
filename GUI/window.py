@@ -223,6 +223,7 @@ class Ventana:
 				messageArray.append(i.toString(self.tabop))
 				#se define el inicio del contador de localidades
 				self.contloc.add(n)
+				print i.get_opcode()
 				if i.get_opcode() == "ORG":
 					opr = i.get_operator()
 					val = self.get_dec(opr)

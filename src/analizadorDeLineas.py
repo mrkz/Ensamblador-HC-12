@@ -124,7 +124,7 @@ class Linea:
 					- Inicia con letra o guión bajo
 					- Contiene solo letras, guión bajo o números"""
 		# compilar patrón para una etiqueta
-		label_pattern = re.compile('[a-zA-Z_][\w]+')
+		label_pattern = re.compile('[a-zA-Z_][\w,]+')
 		if cad == None:
 			cad = self.get_label()
 		# verdadero si la cadena dada (etiqueta) coincide con la ex. regular y tiene tamaño 0<cad<6
@@ -187,10 +187,15 @@ class Linea:
 		return string
 	
 	def selectMode(self, codop, operando, tabop):
+		print operando # linea temporal para ver hasta donde dice crash :v
 		if operando == None:
 			return "INH"
 		elif operando[0]=='#':
 			return "IMM"
+		
+		# si el operando tiene una coma es REL (cuando acepte idx esto se modifica)
+		elif operando.find(',') >= 0:
+			return "REL"
 		#puede ser DIR,EXT,REL
 		elif operando[0]=='@' or operando[0]=='$' or operando[0]=='%' or operando[0].isdigit():
 			valor_decimal = self.get_decimal(operando)
