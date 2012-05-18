@@ -90,6 +90,25 @@ class Linea:
 	def is_label(self):
 		return self.__is_label
 	
+	def set_val_contloc(self,string):
+		self.__contloc = string
+	
+	def get_val_contloc(self):
+		return self.__contloc
+	
+	def get_rel8(self):
+		operator = self.get_decimal(self.get_operator())
+		contLocDec = int(self.get_val_contloc(),16)
+		total = operator - (contLocDec + self.get_totalbytes())
+		if total < 0: # es valor negativo y se saca a pata :v
+			operator = hex( (total + (1<<8)) % (1<<8))
+			operator = operator[2:]
+		else:
+			operator = self.get_hexadecimal_format(str(total))
+		operator = operator.upper()
+		return operator
+		
+	
 	def get_machinecode(self,tabop, dict_tbs=None): #dict_tbs para los elementos que tienen etiqueta en el operando
 		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
 		machCode = tabop.tabop[self.get_opcode()][self.get_direccionamiento()][1]
@@ -101,7 +120,7 @@ class Linea:
 			elif self.get_totalbytes() == 3:
 				machCode+= " lb rr"
 			else: #se infiere que self.get_totalbytes() == 2
-				machCode+= " rr"
+				machCode+= " "+self.get_rel8()
 		elif self.get_direccionamiento() == "EXT":
 			#machCode+= " hh ll"
 			if dict_tbs == None: # no hay diccionario por que no hay etiqueta y no se llamó al método con diccionario
@@ -187,7 +206,7 @@ class Linea:
 		return string
 	
 	def selectMode(self, codop, operando, tabop):
-		print operando # linea temporal para ver hasta donde dice crash :v
+		#print operando # linea temporal para ver hasta donde dice crash :v
 		if operando == None:
 			return "INH"
 		elif operando[0]=='#':

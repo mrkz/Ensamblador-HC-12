@@ -223,17 +223,18 @@ class Ventana:
 				messageArray.append(i.toString(self.tabop))
 				#se define el inicio del contador de localidades
 				self.contloc.add(n)
-				print i.get_opcode()
 				if i.get_opcode() == "ORG":
 					opr = i.get_operator()
 					val = self.get_dec(opr)
 					self.contloc.set_contloc(val)
+					i.set_val_contloc(self.contloc.get_format())
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
 					lstArray.append(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
 					n = 0
 				# if(es un código de operación)
 				if self.tabop.tabop.has_key(i.get_opcode()):
 					n=i.get_totalbytes()
+					i.set_val_contloc(self.contloc.get_format())
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
 					if i.get_operator()!=None:
 						# si el operando es una etiqueta, se añade a la cola de post-procesamiento (*.tbs stuffs :v)
@@ -252,11 +253,13 @@ class Ventana:
 					opr = i.get_operator()
 					val = self.get_dec(opr)
 					n = 0
+					i.set_val_contloc(self.contloc.fotmatEqu(val))
 					messageArray[-1]+="\nContloc: "+self.contloc.fotmatEqu(val)
 					lstArray.append(self.contloc.fotmatEqu(val)+"\t\t\t"+line[j]+"\n")
 					self.tbs.write(i.get_label()+"\t"+self.contloc.fotmatEqu(val)+"\n")
 					dict_tbs[i.get_label()] = self.contloc.fotmatEqu(val)
 				if i.get_opcode() == "END":
+					i.set_val_contloc(self.contloc.get_format())
 					messageArray[-1]+="\nContloc: "+self.contloc.get_format()
 					lstArray.append(self.contloc.get_format()+"\t\t\t"+line[j]+"\n")
 					if i.get_label() != None:

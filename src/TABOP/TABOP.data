@@ -262,8 +262,8 @@ EORB|true|[IDX2]|E8|1|3|4
 ETBL|true|IDX|18 3F|2|1|3
 EXG|true|INH|B7|1|1|2
 FDIV|false|INH|18 11|2|0|2
-IBEQ|true|REL|4|1|2|3
-IBNE|true|REL|4|1|2|3
+IBEQ|true|REL|04|1|2|3
+IBNE|true|REL|04|1|2|3
 IDIV|false|INH|18 10|2|0|2
 IDIVS|false|INH|18 15|2|0|2
 INC|true|EXT|72|1|2|3
