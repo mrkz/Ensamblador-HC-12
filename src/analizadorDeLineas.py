@@ -145,8 +145,42 @@ class Linea:
 		lb = lb[2:].rjust(2,'0').upper()
 		operator = lb+" "+operNumHex
 		return operator
+	
+	def get_idx_pre_post(self):
+		opr_dict = {'1':'0000', '2':'0001', '3':'0010', '4':'0011', '5':'0100', '6':'0101', '7':'0110', '8': '0111',
+					'+1':'0000', '+2':'0001', '+3':'0010', '+4':'0011', '+5':'0100', '+6':'0101', '+7':'0110', '+8': '0111',
+					'-1':'1111', '-2':'1110', '-3':'1101', '-4':'1100', '-5':'1011', '-6':'1010', '-7':'1001', '-8':'1000'}
 		
-		
+		rr1p_dict = {'+X':'0010', '-X':'0010', 'X+':'0011', 'X-':'0011', '+Y':'0110', '-Y':'0110', 'Y+':'0111', 'Y-':'0111',
+					 '+SP':'1010', '-SP':'1010', 'SP+':'1011', 'SP-':'1011'}
+		operator = self.get_operator()
+		operNum = int(operator[:operator.find(',')])
+		if "-" in operator:
+			operNum*= -1
+		operNum = str(operNum)
+		xysp = operator[operator.find(',')+1:]
+		strBin = rr1p_dict[xysp]+opr_dict[operNum]
+		operator = hex(int(strBin,2))[2:].upper()
+		operator = operator.rjust(2,'0')	# si no está completo, se rellena con ceros
+		return operator
+	
+	def get_idx_5bits(self):
+		opr_dict = {'-16':'10000', '-15':'10001', '-14':'10010', '-13':'10011', '-12':'10100', '-11':'10101', '-10':'10110',
+				    '-9' :'10111', '-8' :'11000', '-7' :'11001', '-6' :'11010', '-5' :'11011', '-4' :'11100', '-3' :'11101',
+				    '-2' :'11110', '-1' :'11111', '0'  :'00000', '1'  :'00001', '2'  :'00010', '3'  :'00011', '4'  :'00100',
+				    '5'  :'00101', '6'  :'00110', '7'  :'00111', '8'  :'01000', '9'  :'01001', '10' :'01010', '11' :'01011',
+				    '12' :'01100', '13' :'01101', '14' :'01110', '15' :'01111'}
+		rr_dict = {'X':'000','Y':'010', 'SP':'100', 'PC': '110'}
+		operator = self.get_operator()
+		if operator.find(',') == 0:
+			operNum = '0'
+		else:
+			operNum = operator[:operator.find(',')]
+		xysp = operator[operator.find(',')+1:]
+		strBin = rr_dict[xysp]+opr_dict[operNum]
+		operator = hex(int(strBin,2))[2:].upper()
+		operator = operator.rjust(2,'0')	# si no está completo, se rellena con ceros
+		return operator
 	
 	def get_machinecode(self,tabop, dict_tbs=None): #dict_tbs para los elementos que tienen etiqueta en el operando
 		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
@@ -174,8 +208,24 @@ class Linea:
 			else:
 				machCode+= " " + self.get_hexadecimal_format_filled(self.get_operator())
 		elif self.get_direccionamiento() == "IDX":
-			machCode+= " xb"
+			op = self.get_operator().upper()
+			if (("+X" in op) or ("-X" in op) or ("X+" in op) or ("X-" in op) or\
+			   ("+Y" in op) or ("-Y" in op) or ("Y+" in op) or ("Y-" in op) or\
+			   ("+SP" in op) or ("-SP" in op) or ("SP+" in op) or ("SP-" in op)):
+				machCode+= " "+self.get_idx_pre_post()
+			elif (self.contain_digit(self.get_operator()) and ("," in self.get_operator())) or op[0]==',':	# es un idx de 5 bits (hasta p8)
+				machCode+= " "+self.get_idx_5bits()
+			else:
+				machCode+= " xb"
 		return machCode
+	
+	def contain_digit(self,string):
+		band = False
+		for i in string:
+			if i.isdigit():
+				band = True
+				break
+		return band
 
 	def check_label(self,cad=None):
 		"""método que revisa la composición de una etiqueta mediante expresiones regulares
