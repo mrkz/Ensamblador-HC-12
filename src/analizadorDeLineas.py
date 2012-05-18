@@ -107,7 +107,19 @@ class Linea:
 			operator = self.get_hexadecimal_format(str(total))
 		operator = operator.upper()
 		return operator
-		
+	
+	def get_rel16(self):
+		operator = self.get_decimal(self.get_operator())
+		contLocDec = int(self.get_val_contloc(),16)
+		total = operator - (contLocDec + self.get_totalbytes())
+		if total < 0: # es valor negativo y se saca a pata :v
+			operator = hex( (total + (1<<16)) % (1<<16))
+			operator = operator[2:]
+			operator = operator[:2]+" "+operator[2:]
+		else:
+			operator = self.get_hexadecimal_format(str(total))
+		operator = operator.upper()
+		return operator
 	
 	def get_machinecode(self,tabop, dict_tbs=None): #dict_tbs para los elementos que tienen etiqueta en el operando
 		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
@@ -116,7 +128,7 @@ class Linea:
 			machCode+= " " + self.get_hexadecimal_format(self.get_operator())
 		elif self.get_direccionamiento() == "REL":
 			if self.get_totalbytes() == 4:
-				machCode+= " qq rr"
+				machCode+= " "+self.get_rel16()
 			elif self.get_totalbytes() == 3:
 				machCode+= " lb rr"
 			else: #se infiere que self.get_totalbytes() == 2
