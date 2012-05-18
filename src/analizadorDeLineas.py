@@ -121,6 +121,33 @@ class Linea:
 		operator = operator.upper()
 		return operator
 	
+	def get_rel9(self):
+		register_dict = {'A':0, 'B':1, 'D':4, 'X':5, 'Y':6, 'SP':7} #diccionario con registros
+		cod_op_dict = {'DBEQ':0, 'DBNE':32, 'TBEQ':64, 'TBNE':96, 'IBEQ':128, 'IBNE': 160}
+		contLocDec = int(self.get_val_contloc(),16)
+		operator = self.get_operator()	# se recibe cadena completa i.e.: SP,643
+		register = operator[:operator.find(',')].upper() # se extrae el registro i.e.: SP y se hace mayúscula
+		operNum = operator[operator.find(',')+1:] # se extrae el valor numérico i.e.: 643
+		operNum = self.get_decimal(operNum) # se obtiene entero decimal i.e: F → 15
+		contLocDec = int(self.get_val_contloc(),16)
+		total = operNum - (contLocDec + self.get_totalbytes())
+		if total < 0: # es valor negativo y se saca a pata :v
+			operNumHex = hex( (total + (1<<8)) % (1<<8))
+			operNumHex = operNumHex[2:].upper()
+		else:
+			operNumHex = self.get_hexadecimal_format(str(total))
+		operNumHex = operNumHex.rjust(2,'0')
+		rr = register_dict[register]
+		lb = cod_op_dict[self.get_opcode()] + rr
+		if operNum < (contLocDec + self.get_totalbytes()): # salto negativo se le suman 10
+			lb = lb + 16
+		lb = hex(lb)
+		lb = lb[2:].rjust(2,'0').upper()
+		operator = lb+" "+operNumHex
+		return operator
+		
+		
+	
 	def get_machinecode(self,tabop, dict_tbs=None): #dict_tbs para los elementos que tienen etiqueta en el operando
 		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
 		machCode = tabop.tabop[self.get_opcode()][self.get_direccionamiento()][1]
@@ -130,7 +157,7 @@ class Linea:
 			if self.get_totalbytes() == 4:
 				machCode+= " "+self.get_rel16()
 			elif self.get_totalbytes() == 3:
-				machCode+= " lb rr"
+				machCode+= " "+self.get_rel9()
 			else: #se infiere que self.get_totalbytes() == 2
 				machCode+= " "+self.get_rel8()
 		elif self.get_direccionamiento() == "EXT":
