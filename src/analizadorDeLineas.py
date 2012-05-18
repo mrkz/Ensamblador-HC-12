@@ -171,13 +171,24 @@ class Linea:
 				    '5'  :'00101', '6'  :'00110', '7'  :'00111', '8'  :'01000', '9'  :'01001', '10' :'01010', '11' :'01011',
 				    '12' :'01100', '13' :'01101', '14' :'01110', '15' :'01111'}
 		rr_dict = {'X':'000','Y':'010', 'SP':'100', 'PC': '110'}
-		operator = self.get_operator()
+		operator = self.get_operator().upper()
 		if operator.find(',') == 0:
 			operNum = '0'
 		else:
 			operNum = operator[:operator.find(',')]
 		xysp = operator[operator.find(',')+1:]
 		strBin = rr_dict[xysp]+opr_dict[operNum]
+		operator = hex(int(strBin,2))[2:].upper()
+		operator = operator.rjust(2,'0')	# si no está completo, se rellena con ceros
+		return operator
+	
+	def get_idx_acum(self):
+		operator = self.get_operator().upper()
+		abd_dict = {'A':'100','B':'101','D':'110'}
+		rr_dict = {'X':'11100', 'Y':'11101', 'PC':'11111', 'SP':'11110'}
+		abd = operator[:operator.find(',')]
+		xysp = operator[operator.find(',')+1:]
+		strBin =  rr_dict[xysp]+abd_dict[abd]
 		operator = hex(int(strBin,2))[2:].upper()
 		operator = operator.rjust(2,'0')	# si no está completo, se rellena con ceros
 		return operator
@@ -216,7 +227,7 @@ class Linea:
 			elif (self.contain_digit(self.get_operator()) and ("," in self.get_operator())) or op[0]==',':	# es un idx de 5 bits (hasta p8)
 				machCode+= " "+self.get_idx_5bits()
 			else:
-				machCode+= " xb"
+				machCode+= " "+self.get_idx_acum()
 		return machCode
 	
 	def contain_digit(self,string):
