@@ -173,6 +173,8 @@ class Linea:
 				machCode+= " " + self.get_hexadecimal_format(self.get_operator())
 			else:
 				machCode+= " " + self.get_hexadecimal_format_filled(self.get_operator())
+		elif self.get_direccionamiento() == "IDX":
+			machCode+= " xb"
 		return machCode
 
 	def check_label(self,cad=None):
@@ -182,7 +184,7 @@ class Linea:
 					- Inicia con letra o guión bajo
 					- Contiene solo letras, guión bajo o números"""
 		# compilar patrón para una etiqueta
-		label_pattern = re.compile('[a-zA-Z_][\w,]+')
+		label_pattern = re.compile('[a-zA-Z_][\w]+')
 		if cad == None:
 			cad = self.get_label()
 		# verdadero si la cadena dada (etiqueta) coincide con la ex. regular y tiene tamaño 0<cad<6
@@ -246,14 +248,23 @@ class Linea:
 	
 	def selectMode(self, codop, operando, tabop):
 		#print operando # linea temporal para ver hasta donde dice crash :v
+		commaIndex = operando.find(',')
 		if operando == None:
 			return "INH"
 		elif operando[0]=='#':
 			return "IMM"
 		
 		# si el operando tiene una coma es REL (cuando acepte idx esto se modifica)
-		elif operando.find(',') >= 0:
-			return "REL"
+		elif commaIndex >= 0: # puede ser REL9 o IDX
+			sp = operando.find('SP'); a = operando.find('A'); b = operando.find('B');
+			d = operando.find('D'); x = operando.find('X'); y = operando.find('Y');
+			if ((sp <  commaIndex) and (sp != -1)) or (((a <  commaIndex) and (a != -1)) and (operando[-1].isdigit())) or\
+													  (((b <  commaIndex) and (b != -1)) and (operando[-1].isdigit())) or\
+													  (((d <  commaIndex) and (d != -1)) and (operando[-1].isdigit())) or\
+			   ((x < commaIndex) and (x != -1))   or ((y < commaIndex) and (y != -1)):	# es REL
+				return "REL"
+			else:
+				return "IDX"
 		#puede ser DIR,EXT,REL
 		elif operando[0]=='@' or operando[0]=='$' or operando[0]=='%' or operando[0].isdigit():
 			valor_decimal = self.get_decimal(operando)
