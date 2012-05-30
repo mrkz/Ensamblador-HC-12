@@ -228,6 +228,14 @@ class Linea:
 				machCode+= " "+self.get_idx_5bits()
 			else:
 				machCode+= " "+self.get_idx_acum()
+		elif self.get_direccionamiento() == "IDX1":
+			machCode+=" xb ff "
+		elif self.get_direccionamiento() == "IDX2":
+			machCode+= " xb ee ff"
+		elif self.get_direccionamiento() == "[IDX2]":
+			machCode+= " [xb ee ff]"
+		elif self.get_direccionamiento() == "[D,IDX]":
+			machCode+= " [xb]"
 		return machCode
 	
 	def contain_digit(self,string):
@@ -315,7 +323,7 @@ class Linea:
 		elif operando[0]=='#':
 			return "IMM"
 		
-		# si el operando tiene una coma es REL (cuando acepte idx esto se modifica)
+		# si el operando tiene una coma es REL o uno de la familia de IDX
 		elif commaIndex >= 0: # puede ser REL9 o IDX
 			sp = operando.find('SP'); a = operando.find('A'); b = operando.find('B');
 			d = operando.find('D'); x = operando.find('X'); y = operando.find('Y');
@@ -325,7 +333,22 @@ class Linea:
 			   ((x < commaIndex) and (x != -1))   or ((y < commaIndex) and (y != -1)):	# es REL
 				return "REL"
 			else:
-				return "IDX"
+				# nido de indexados
+				number = self.get_number_from_idx(operando)
+				print number, operando
+				if number != None:
+					number = self.get_decimal(number)
+				if '[' in operando:
+					if 'D' in operando.upper():
+						return "[D,IDX]"
+					else:
+						return "[IDX2]"
+				elif (number >= -16) and (number <= 15):
+					return "IDX" #idx de 5 bits
+				elif (number >=-256) and (number<= 255):
+					return "IDX1"
+				else:	# se infiere que es un IDX2 (IDX de 16 bits)
+					return "IDX2"
 		#puede ser DIR,EXT,REL
 		elif operando[0]=='@' or operando[0]=='$' or operando[0]=='%' or operando[0].isdigit():
 			valor_decimal = self.get_decimal(operando)
@@ -350,7 +373,16 @@ class Linea:
 		else:
 			self.set_is_label()
 			return "EXT"
-			
+	
+	def get_number_from_idx(self,str):
+		st = ""	 # cadena donde se almacenará el número
+		for i in str:
+			if i.isdigit() or i=='-' or i=='@' or i=='$' or i=='%':
+				st+=i
+		if st == "":
+			return None
+		return st
+	
 	def get_decimal(self,cadena):
 		if cadena[0]=='#':
 			cadena = cadena[1:]
