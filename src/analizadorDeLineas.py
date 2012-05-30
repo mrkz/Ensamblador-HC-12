@@ -193,6 +193,70 @@ class Linea:
 		operator = operator.rjust(2,'0')	# si no está completo, se rellena con ceros
 		return operator
 	
+	def get_idx1(self):
+		operator = self.get_operator().upper()
+		rr_dict = {'X':'11100000', 'X-':'11100001', 'Y':'11101000', 'Y-':'11101001', 
+				   'SP':'11110000', 'SP-':'11110001', 'PC':'11111000', 'PC-':'11111001'}
+		sign,r = "",""
+		operNum = self.get_number_from_idx(operator) # se obtiene el número del operando, i.e.: @74
+		operNum = self.get_decimal(operNum)	# se convierte a entero, i.e: @74 -> 60
+		if operNum < 0:
+			operNumHex = hex((operNum + (1<<8)) % (1<<8)).upper()
+		else:
+			operNumHex = hex(operNum).upper()
+		operNumHex = operNumHex[2:]
+		if 'X' in operator:
+			r = 'X'
+		elif 'Y' in operator:
+			r = 'Y'
+		elif 'SP' in operator:
+			r = 'SP'
+		elif 'PC' in operator:
+			r = 'PC'
+		if operNum < 0:
+			r+='-'
+		xb = hex(int(rr_dict[r],2))[2:].upper()
+		xb = xb.rjust(2,'0')	# si no está completo, se rellena con ceros, i.e.: 'F' -> '0F'
+		
+		return (xb+" "+operNumHex)
+	
+	# obtiene los IDX2 e [IDX2], si es IDX2 recibe el dicionario por defecto, en caso contrario
+	# se le manda el diccionario de el [IDX2] para generar el código xb correspondiente
+	def get_idx2(self,rr_dict = {'X':'11100010', 'Y':'11101010', 'SP':'11110010', 'PC':'11111010'}):
+		operator = self.get_operator().upper()
+		operNum = self.get_number_from_idx(operator) # se obtiene el número del operando, i.e.: @74
+		operNum = self.get_decimal(operNum)	# se convierte a entero, i.e: @74 -> 60
+		operNumHex = hex(operNum)[2:].upper()
+		operNumHex = operNumHex.rjust(4,'0')	# si no está completo, se rellena, i.e: 'DA' -> '00DA'
+		operNumHex = operNumHex[:2]+" "+operNumHex[2:] # se formatea con espacio, i.e: '00DA' -> '00 DA'
+		xb = ""
+		if 'X' in operator:
+			xb+='X'
+		elif 'Y' in operator:
+			xb+='Y'
+		elif 'SP' in operator:
+			xb+='SP'
+		elif 'PC' in operator:
+			xb+='PC'
+		xb = hex(int(rr_dict[xb],2))[2:].upper() # se quita el 0x y se hace mayuscula la cadena que regresa hex(<decimal>)
+		xb = xb.rjust(2,'0') # si no está completo, se rellena con ceros, i.e.: 'F' -> '0F'
+		return (xb+" "+operNumHex)
+	
+	def get_d_idx(self):
+		operator = self.get_operator().upper()
+		rr_dict = {'X':'11100111', 'Y':'11101111', 'SP':'11110111', 'PC':'11111111'}
+		xb=""
+		if 'X' in operator:
+			xb+='X'
+		elif 'Y' in operator:
+			xb+='Y'
+		elif 'SP' in operator:
+			xb+='SP'
+		elif 'PC' in operator:
+			xb+='PC'
+		xb = hex(int(rr_dict[xb],2))[2:].upper()
+		return xb
+	
 	def get_machinecode(self,tabop, dict_tbs=None): #dict_tbs para los elementos que tienen etiqueta en el operando
 		#obtengo código de la lista en diccionario[CODOP][DIRECCIONAMIENTO] 
 		machCode = tabop.tabop[self.get_opcode()][self.get_direccionamiento()][1]
@@ -229,13 +293,13 @@ class Linea:
 			else:
 				machCode+= " "+self.get_idx_acum()
 		elif self.get_direccionamiento() == "IDX1":
-			machCode+=" xb ff "
+			machCode+=" "+self.get_idx1()
 		elif self.get_direccionamiento() == "IDX2":
-			machCode+= " xb ee ff"
+			machCode+= " "+self.get_idx2()
 		elif self.get_direccionamiento() == "[IDX2]":
-			machCode+= " [xb ee ff]"
+			machCode+= " "+self.get_idx2({'X':'11100011', 'Y':'11101011', 'SP': '11110011', 'PC':'11111011'})
 		elif self.get_direccionamiento() == "[D,IDX]":
-			machCode+= " [xb]"
+			machCode+= " "+self.get_d_idx()
 		return machCode
 	
 	def contain_digit(self,string):
@@ -335,7 +399,6 @@ class Linea:
 			else:
 				# nido de indexados
 				number = self.get_number_from_idx(operando)
-				print number, operando
 				if number != None:
 					number = self.get_decimal(number)
 				if '[' in operando:
